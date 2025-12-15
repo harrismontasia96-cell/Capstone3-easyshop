@@ -62,7 +62,7 @@ public class ProductsController
         }
     }
 
-    @PostMapping()
+    @PutMapping()
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Product updateProduct(@PathVariable int id, @RequestBody Product product)
     {
@@ -73,7 +73,6 @@ public class ProductsController
             if(existingProduct == null)
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
 
-            // Update fields from the incoming product
             existingProduct.setName(product.getName());
             existingProduct.setPrice(product.getPrice());
             existingProduct.setDescription(product.getDescription());
@@ -83,8 +82,11 @@ public class ProductsController
             existingProduct.setImageUrl(product.getImageUrl());
             existingProduct.setFeatured(product.isFeatured());
 
-            // Save updated product using the DAO update method
-            return productDao.update(existingProduct);
+
+            productDao.update(existingProduct.getProductId(), existingProduct);
+
+
+            return productDao.getById(existingProduct.getProductId());
         }
         catch(Exception ex){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
