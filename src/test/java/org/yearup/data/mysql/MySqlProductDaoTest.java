@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
 class MySqlProductDaoTest extends BaseDaoTestClass
 {
     private MySqlProductDao dao;

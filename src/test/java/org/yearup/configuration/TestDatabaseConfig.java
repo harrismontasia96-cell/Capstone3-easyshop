@@ -20,6 +20,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+
 @Configuration
 public class TestDatabaseConfig
 {
@@ -68,8 +69,11 @@ public class TestDatabaseConfig
 
 
     @Bean
-    public DataSource dataSource() throws SQLException, IOException
+    public DataSource dataSource() throws SQLException, IOException , ClassNotFoundException
     {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
+
         SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
         dataSource.setUrl(String.format("%s/%s", serverUrl, testDb));
         dataSource.setUsername(username);
