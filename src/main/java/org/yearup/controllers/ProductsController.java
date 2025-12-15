@@ -26,18 +26,19 @@ public class ProductsController
 
     @GetMapping("")
     @PreAuthorize("permitAll()")
-    public List<Product> search(@RequestParam(name="cat", required = false) Integer categoryId,
-                                @RequestParam(name="minPrice", required = false) BigDecimal minPrice,
-                                @RequestParam(name="maxPrice", required = false) BigDecimal maxPrice,
-                                @RequestParam(name="subCategory", required = false) String subCategory
-                                )
-    {
-        try
-        {
+    public List<Product> search(@RequestParam(name = "cat", required = false) Integer categoryId,
+                                @RequestParam(name = "minPrice", required = false) BigDecimal minPrice,
+                                @RequestParam(name = "maxPrice", required = false) BigDecimal maxPrice,
+                                @RequestParam(name = "subCategory", required = false) String subCategory
+    ) {
+        try {
+            // Validate price range
+            if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
+            }
+
             return productDao.search(categoryId, minPrice, maxPrice, subCategory);
-        }
-        catch(Exception ex)
-        {
+        } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }
@@ -63,28 +64,29 @@ public class ProductsController
 
     @PostMapping()
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Product addProduct(@RequestBody Product product)
+    public Product updateProduct(@PathVariable int id, @RequestBody Product product)
     {
         try
         {
-            return productDao.create(product);
-        }
-        catch(Exception ex)
-        {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
-        }
-    }
+            Product existingProduct = productDao.getById(id);
 
-    @PutMapping("{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public void updateProduct(@PathVariable int id, @RequestBody Product product)
-    {
-        try
-        {
-            productDao.create(product);
+            if(existingProduct == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
+
+            // Update fields from the incoming product
+            existingProduct.setName(product.getName());
+            existingProduct.setPrice(product.getPrice());
+            existingProduct.setDescription(product.getDescription());
+            existingProduct.setCategoryId(product.getCategoryId());
+            existingProduct.setSubCategory(product.getSubCategory());
+            existingProduct.setStock(product.getStock());
+            existingProduct.setImageUrl(product.getImageUrl());
+            existingProduct.setFeatured(product.isFeatured());
+
+            // Save updated product using the DAO update method
+            return productDao.update(existingProduct);
         }
-        catch(Exception ex)
-        {
+        catch(Exception ex){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }

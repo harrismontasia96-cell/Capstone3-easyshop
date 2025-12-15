@@ -13,51 +13,60 @@ import java.util.List;
 @Component
 public class MySqlProductDao extends MySqlDaoBase implements ProductDao
 {
-    public MySqlProductDao(DataSource dataSource)
-    {
-        super(dataSource);
-    }
-
     @Override
-    public List<Product> search(Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice, String subCategory)
-    {
+    public List<Product> search(Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice, String subCategory) {
         List<Product> products = new ArrayList<>();
+        String sql = "SELECT * FROM products WHERE 1=1";
 
-        String sql = "SELECT * FROM products " +
-                "WHERE (category_id = ? OR ? = -1) " +
-                "   AND (price <= ? OR ? = -1) " +
-                "   AND (subcategory = ? OR ? = '') ";
+        if (categoryId != null) {
+            sql += " AND category_id = ?";
+        }
+        if (minPrice != null) {
+            sql += " AND price >= ?";
+        }
+        if (maxPrice != null) {
+            sql += " AND price <= ?";
+        }
+        if (subCategory != null && !subCategory.isEmpty()) {
+            sql += " AND subcategory = ?";
+        }
 
-        categoryId = categoryId == null ? -1 : categoryId;
-        minPrice = minPrice == null ? new BigDecimal("-1") : minPrice;
-        maxPrice = maxPrice == null ? new BigDecimal("-1") : maxPrice;
-        subCategory = subCategory == null ? "" : subCategory;
-
-        try (Connection connection = getConnection())
-        {
+        try (Connection connection = getConnection()) {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, categoryId);
-            statement.setInt(2, categoryId);
-            statement.setBigDecimal(3, minPrice);
-            statement.setBigDecimal(4, minPrice);
-            statement.setString(5, subCategory);
-            statement.setString(6, subCategory);
+            int index = 1;
+
+            if (categoryId != null) {
+                statement.setInt(index++, categoryId);
+            }
+            if (minPrice != null) {
+                statement.setBigDecimal(index++, minPrice);
+            }
+            if (maxPrice != null) {
+                statement.setBigDecimal(index++, maxPrice);
+            }
+            if (subCategory != null && !subCategory.isEmpty()) {
+                statement.setString(index++, subCategory);
+            }
 
             ResultSet row = statement.executeQuery();
-
-            while (row.next())
-            {
-                Product product = mapRow(row);
-                products.add(product);
+            while (row.next()) {
+                products.add(mapRow(row));
             }
-        }
-        catch (SQLException e)
-        {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
         return products;
     }
+
+
+
+    public MySqlProductDao(DataSource dataSource)
+    {
+        super(dataSource);
+    }
+
+
 
     @Override
     public List<Product> listByCategoryId(int categoryId)
