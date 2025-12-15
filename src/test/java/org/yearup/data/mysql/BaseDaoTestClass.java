@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestDatabaseConfig.class)
 public abstract class BaseDaoTestClass

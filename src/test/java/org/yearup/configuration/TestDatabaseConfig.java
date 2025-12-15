@@ -35,10 +35,10 @@ public class TestDatabaseConfig
                               @Value("${datasource.password}") String password,
                               @Value("${datasource.testdb}") String testDb)
     {
-        this.serverUrl = serverUrl;
-        this.testDb = testDb;
-        this.username = username;
-        this.password = password;
+        this.serverUrl = "jdbc:mysql://localhost:3306";
+        this.testDb = "easyshop_test";
+        this.username = "root";
+        this.password = "yearup";
     }
 
     @PostConstruct
