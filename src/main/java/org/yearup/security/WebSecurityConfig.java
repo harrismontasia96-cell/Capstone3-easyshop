@@ -55,22 +55,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                // we don't need CSRF because our token is invulnerable
                 .csrf().disable()
 
                 .exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .accessDeniedHandler(jwtAccessDeniedHandler)
-
-                // create no session
                 .and()
+
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
                 .and()
+
+                .authorizeRequests()
+                // allow login/register without token
+                .antMatchers("/login", "/register").permitAll()
+
+                // (OPTIONAL) if requirements expect anyone can view categories:
+                .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
+
+                // admin-only for changes:
+                .antMatchers(HttpMethod.POST, "/categories").hasRole("ADMIN")
+                .antMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
+
+                // everything else needs authentication
+                .anyRequest().authenticated()
+                .and()
+
                 .apply(securityConfigurerAdapter());
     }
-
     private JWTConfigurer securityConfigurerAdapter() {
         return new JWTConfigurer(tokenProvider);
     }

@@ -32,7 +32,7 @@ public class ProductsController
                                 @RequestParam(name = "subCategory", required = false) String subCategory
     ) {
         try {
-            // Validate price range
+
             if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
             }
@@ -43,52 +43,33 @@ public class ProductsController
         }
     }
 
-    @GetMapping("{id}")
-    @PreAuthorize("permitAll()")
-    public Product getById(@PathVariable int id )
-    {
-        try
-        {
-            var product = productDao.getById(id);
-
-            if(product == null)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-            return product;
-        }
-        catch(Exception ex)
-        {
+    @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Product createProduct(@RequestBody Product product) {
+        try {
+            return productDao.create(product);
+        } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }
 
-    @PutMapping()
+    @PutMapping("{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Product updateProduct(@PathVariable int id, @RequestBody Product product)
-    {
-        try
-        {
+    public Product updateProduct(@PathVariable int id, @RequestBody Product product) {
+        try {
             Product existingProduct = productDao.getById(id);
 
-            if(existingProduct == null)
+            if (existingProduct == null)
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
 
-            existingProduct.setName(product.getName());
-            existingProduct.setPrice(product.getPrice());
-            existingProduct.setDescription(product.getDescription());
-            existingProduct.setCategoryId(product.getCategoryId());
-            existingProduct.setSubCategory(product.getSubCategory());
-            existingProduct.setStock(product.getStock());
-            existingProduct.setImageUrl(product.getImageUrl());
-            existingProduct.setFeatured(product.isFeatured());
 
+            product.setProductId(id);
 
-            productDao.update(existingProduct.getProductId(), existingProduct);
+            productDao.update(id, product);
 
-
-            return productDao.getById(existingProduct.getProductId());
-        }
-        catch(Exception ex){
+            return productDao.getById(id);
+        } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }

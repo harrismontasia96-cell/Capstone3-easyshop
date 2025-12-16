@@ -52,14 +52,14 @@ public class CategoriesController
 
     // POST /categories (ADMIN only)
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Category addCategory(@RequestBody Category category) {
         return categoryDao.create(category);
     }
 
     // PUT /categories/{id} (ADMIN only)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public void updateCategory(@PathVariable int id, @RequestBody Category category) {
         categoryDao.update(id, category);
     }
