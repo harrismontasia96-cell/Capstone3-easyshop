@@ -53,8 +53,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      * @throws Exception
      */
     @Override
-    protected void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
+    protected void configure(HttpSecurity http) throws Exception {
+        http
                 .csrf().disable()
 
                 .exceptionHandling()
@@ -67,22 +67,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 
                 .authorizeRequests()
-                // allow login/register without token
-                .antMatchers("/login", "/register").permitAll()
 
-                // (OPTIONAL) if requirements expect anyone can view categories:
+
+                .antMatchers("/login", "/register").permitAll()
+                .antMatchers(HttpMethod.GET, "/products/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
 
-                // admin-only for changes:
+
+                .antMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
+                .antMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+
                 .antMatchers(HttpMethod.POST, "/categories").hasRole("ADMIN")
                 .antMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
 
-                // everything else needs authentication
+                // 🔒 EVERYTHING ELSE REQUIRES LOGIN
                 .anyRequest().authenticated()
                 .and()
 
                 .apply(securityConfigurerAdapter());
+
     }
     private JWTConfigurer securityConfigurerAdapter() {
         return new JWTConfigurer(tokenProvider);
